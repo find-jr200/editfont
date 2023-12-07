@@ -1,0 +1,25 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.8.34316.72
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "EditFont", "EditFont\EditFont.csproj", "{B1983EA6-1665-4961-92ED-89A510E8126E}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{B1983EA6-1665-4961-92ED-89A510E8126E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B1983EA6-1665-4961-92ED-89A510E8126E}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B1983EA6-1665-4961-92ED-89A510E8126E}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B1983EA6-1665-4961-92ED-89A510E8126E}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {C19652F6-30FC-4E39-9083-87F371A65771}
+	EndGlobalSection
+EndGlobal
