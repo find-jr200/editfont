@@ -45,8 +45,6 @@
             this.DlgSaveBinFile = new System.Windows.Forms.SaveFileDialog();
             this.BtnClear = new System.Windows.Forms.Button();
             this.BtnFill = new System.Windows.Forms.Button();
-            this.label1 = new System.Windows.Forms.Label();
-            this.label2 = new System.Windows.Forms.Label();
             ((System.ComponentModel.ISupportInitialize)(this.PicFontTable)).BeginInit();
             ((System.ComponentModel.ISupportInitialize)(this.PicEditFont)).BeginInit();
             this.GrpRotation.SuspendLayout();
@@ -71,7 +69,8 @@
             this.PicEditFont.Size = new System.Drawing.Size(194, 194);
             this.PicEditFont.TabIndex = 1;
             this.PicEditFont.TabStop = false;
-            this.PicEditFont.MouseClick += new System.Windows.Forms.MouseEventHandler(this.PicEditFont_MouseClick);
+            this.PicEditFont.MouseDown += new System.Windows.Forms.MouseEventHandler(this.PicEditFont_MouseDown);
+            this.PicEditFont.MouseMove += new System.Windows.Forms.MouseEventHandler(this.PicEditFont_MouseMove);
             // 
             // GrpRotation
             // 
@@ -213,32 +212,12 @@
             this.BtnFill.UseVisualStyleBackColor = true;
             this.BtnFill.Click += new System.EventHandler(this.BtnFill_Click);
             // 
-            // label1
-            // 
-            this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(693, 378);
-            this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(49, 12);
-            this.label1.TabIndex = 6;
-            this.label1.Text = "Ver 0.1.1";
-            // 
-            // label2
-            // 
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(667, 403);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(75, 12);
-            this.label2.TabIndex = 7;
-            this.label2.Text = "(C)FIND 2024";
-            // 
             // Main
             // 
             this.AllowDrop = true;
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(754, 536);
-            this.Controls.Add(this.label2);
-            this.Controls.Add(this.label1);
             this.Controls.Add(this.BtnFill);
             this.Controls.Add(this.BtnClear);
             this.Controls.Add(this.GrpFormat);
@@ -261,7 +240,6 @@
             this.GrpFormat.ResumeLayout(false);
             this.GrpFormat.PerformLayout();
             this.ResumeLayout(false);
-            this.PerformLayout();
 
         }
 
@@ -283,8 +261,6 @@
         private System.Windows.Forms.SaveFileDialog DlgSaveBinFile;
         private System.Windows.Forms.Button BtnClear;
         private System.Windows.Forms.Button BtnFill;
-        private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Label label2;
     }
 }
 

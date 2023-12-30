@@ -14,14 +14,16 @@ namespace EditFont
 
         private string[] fileName;
         private byte[] fontRomData, editData;
-        private Bitmap bmpOrgTable, bmpViewTable, bmpEditFont;
+        private Bitmap bmpOrgTable, bmpViewTable, bmpViewEdit, bmpOrgEdit;
         private int fontRomData_head = -1;
+        private int lastX, lastY;
 
         public Main()
         {
             InitializeComponent();
 
-            bmpEditFont = new Bitmap(8 * EDIT_SCALE, 8 * EDIT_SCALE);
+            bmpOrgEdit = new Bitmap(8, 8);
+            bmpViewEdit = new Bitmap(8 * EDIT_SCALE, 8 * EDIT_SCALE);
             bmpOrgTable = new Bitmap(8 * 16 * TABLE_SCALE, 8 * 16 * TABLE_SCALE);
             editData = new byte[8];
         }
@@ -91,8 +93,8 @@ namespace EditFont
                             using (Graphics g = Graphics.FromImage(bmpOrgTable))
                             {
                                 g.FillRectangle(
-                                    new SolidBrush(c), 
-                                    xx * 8 * TABLE_SCALE + x * TABLE_SCALE, 
+                                    new SolidBrush(c),
+                                    xx * 8 * TABLE_SCALE + x * TABLE_SCALE,
                                     yy * 8 * TABLE_SCALE + y * TABLE_SCALE,
                                     TABLE_SCALE,
                                     TABLE_SCALE);
@@ -103,7 +105,6 @@ namespace EditFont
                     }
                 }
             }
-            this.PicFontTable.Image = bmpOrgTable;
         }
 
 
@@ -113,7 +114,7 @@ namespace EditFont
         private void PicFontTable_MouseDoubleClick(object sender, MouseEventArgs e)
         {
             if (e.Button == MouseButtons.Left)
-            { // 左クリック
+            {
                 int x = (int)(e.X / TABLE_SCALE);
                 int y = (int)(e.Y / TABLE_SCALE);
 
@@ -133,27 +134,45 @@ namespace EditFont
                 using (Graphics g = Graphics.FromImage(bmpViewTable))
                 {
                     g.DrawRectangle(
-                        new Pen(Color.Red), 
-                        x * 8 * TABLE_SCALE, 
-                        y * 8 * TABLE_SCALE, 
-                        8 * TABLE_SCALE, 
+                        new Pen(Color.Red),
+                        x * 8 * TABLE_SCALE,
+                        y * 8 * TABLE_SCALE,
+                        8 * TABLE_SCALE,
                         8 * TABLE_SCALE);
 
                 }
                 this.PicFontTable.Image = bmpViewTable;
                 this.PicFontTable.Invalidate();
             }
-
         }
+
+
 
         private void BtnWriteBack_Click(object sender, EventArgs e)
         {
             if (fontRomData_head == -1) return;
-
-            for (int i = 0; i < 8; ++i)
+            int index = fontRomData_head;
+            for (int y = 0; y < 8; ++y)
             {
-                fontRomData[fontRomData_head + i] = editData[i];
+                byte b = 0;
+                for (int x = 0; x < 8; ++x)
+                {
+                    var c = bmpOrgEdit.GetPixel(x, y);
+                    byte t = 0;
+                    if (c.R == 0 && c.G == 0 && c.B == 0)
+                    {
+                        t = 0;
+                    } else
+                    {
+                        t = 1;
+                    }
+                    b <<= 1;
+                    b += t;
+                }
+                fontRomData[index] = b;
+                ++index;
             }
+
             fontRomData_head = -1;
 
             SetBmpOrgTable();
@@ -164,29 +183,64 @@ namespace EditFont
             ClearEditData();
         }
 
-        private void PicEditFont_MouseClick(object sender, MouseEventArgs e)
+
+        private void PicEditFont_MouseDown(object sender, MouseEventArgs e)
         {
-            if (bmpEditFont == null || bmpOrgTable == null || fontRomData_head == -1)
+            if (bmpViewEdit == null || bmpOrgEdit == null || fontRomData_head == -1)
                 return;
 
+            int x = (int)(e.X / EDIT_SCALE);
+            int y = (int)(e.Y / EDIT_SCALE);
+
+            Color c;
             if (e.Button == MouseButtons.Left)
+                c = Color.White;
+            else
+                c = Color.Black;
+
+            bmpOrgEdit.SetPixel(x, y, c);
+            lastX = x;
+            lastY = y;
+            DrawEditVIewImage();
+        }
+
+
+        private void PicEditFont_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (bmpViewEdit == null || bmpOrgEdit == null || fontRomData_head == -1)
+                return;
+
+            if ((e.Button == MouseButtons.Left || e.Button == MouseButtons.Right) &&
+                e.X >= 0 && e.Y >= 0 && e.X < bmpViewEdit.Width && e.Y < bmpViewEdit.Height)
             {
+                if (bmpViewEdit == null || bmpOrgEdit == null)
+                    return;
+
                 int x = (int)(e.X / EDIT_SCALE);
                 int y = (int)(e.Y / EDIT_SCALE);
 
-                byte b = editData[y];
-                x = 7 - x;
-                int f = 1 << x;
-                var z = b ^ f;
-                editData[y] = (byte)z;
+                Color c;
+                if (e.Button == MouseButtons.Left)
+                    c = Color.White;
+                else
+                    c = Color.Black;
 
-                DrawFontData();
+                using (var g = Graphics.FromImage(bmpOrgEdit))
+                {
+                    using (var pen = new Pen(c))
+                        g.DrawLine(pen, lastX, lastY, x, y);
+                }
+                lastX = x;
+                lastY = y;
+
+                DrawEditVIewImage();
             }
         }
 
 
+
         /// <summary>
-        /// 編集するフォントの表示
+        /// 編集するフォントデータをコピーして表示
         /// </summary>
         private void DrawFontData()
         {
@@ -200,54 +254,48 @@ namespace EditFont
                     j &= 1;
 
                     Color c = j == 1 ? Color.White : Color.Black;
-
-                    using (Graphics g = Graphics.FromImage(bmpEditFont))
-                    {
-                        g.FillRectangle(
-                            new SolidBrush(c), 
-                            x * EDIT_SCALE, 
-                            y * EDIT_SCALE,
-                            EDIT_SCALE,
-                            EDIT_SCALE);
-                    }
+                    bmpOrgEdit.SetPixel(x, y, c);
                 }
                 ++index;
             }
-            DrawGrid();
+            DrawEditVIewImage();
         }
 
 
 
         /// <summary>
-        /// フォント編集用グリッド描画
+        /// 編集データ表示用ビットマップ描画
         /// </summary>
-        void DrawGrid()
+        void DrawEditVIewImage()
         {
-            using (Graphics g = Graphics.FromImage(bmpEditFont))
+            if (bmpViewEdit == null || bmpOrgEdit == null) return;
+
+            using (var gr = Graphics.FromImage(bmpViewEdit))
             {
-                for (int y = 1; y < 8; ++y)
-                {
-                    g.DrawLine(
-                        new Pen(Color.White), 
-                        0, 
-                        y * EDIT_SCALE, 
-                        8 * EDIT_SCALE, 
-                        y * EDIT_SCALE);
+                gr.InterpolationMode = System.Drawing.Drawing2D.InterpolationMode.NearestNeighbor;
+                using (var brkBrush = new SolidBrush(Color.Black))
+                    gr.FillRectangle(brkBrush, new Rectangle(0, 0, bmpViewEdit.Width, bmpViewEdit.Height));
 
-                }
-                for (int x = 1; x < 8; ++x)
+
+                using (var whitePen = new Pen(Color.White))
+                using (var blackPen = new Pen(Color.Black))
+                using (var whiteBrush = new SolidBrush(Color.White))
                 {
-                    g.DrawLine(
-                        new Pen(Color.White), 
-                        x * EDIT_SCALE, 
-                        0, 
-                        x * EDIT_SCALE, 
-                        8 * EDIT_SCALE);
+                    for (int x = 0; x < bmpOrgEdit.Width; ++x)
+                    {
+                        for (int y = 0; y < bmpOrgEdit.Height; ++y)
+                        {
+                            Color c = bmpOrgEdit.GetPixel(x, y);
+                            if (c.R == 0 && c.G == 0 && c.B == 0)
+                                gr.DrawRectangle(whitePen, x * EDIT_SCALE, y * EDIT_SCALE, EDIT_SCALE, EDIT_SCALE);
+                            else
+                                gr.FillRectangle(whiteBrush, x * EDIT_SCALE, y * EDIT_SCALE, EDIT_SCALE, EDIT_SCALE);
+                        }
+                    }
                 }
-                this.PicEditFont.Image = bmpEditFont;
             }
+            this.PicEditFont.Image = bmpViewEdit;
         }
-
 
 
 
@@ -256,31 +304,6 @@ namespace EditFont
             if (fontRomData_head == -1) return;
             
             ClearEditData();
-            DrawGrid();
-        }
-
-        private void BtnFill_Click(object sender, EventArgs e)
-        {
-            if (fontRomData_head == -1) return;
-
-            for (int i = 0; i < 8; ++i)
-            {
-                editData[i] = 0xff;
-            }
-
-            using (Graphics g = Graphics.FromImage(bmpEditFont))
-            {
-                g.FillRectangle(
-                    new SolidBrush(Color.White), 
-                    0, 
-                    0, 
-                    8 * EDIT_SCALE, 
-                    8 * EDIT_SCALE);
-
-            }
-            this.PicEditFont.Image = bmpEditFont;
-            this.PicEditFont.Invalidate();
-
         }
 
         private void BtnSave_Click(object sender, EventArgs e)
@@ -414,14 +437,36 @@ namespace EditFont
                 editData[i] = 0;
             }
 
-            using (Graphics g = Graphics.FromImage(bmpEditFont))
+            using (Graphics g = Graphics.FromImage(bmpOrgEdit))
             {
-                g.FillRectangle(new SolidBrush(Color.Black), 0, 0, 8 * EDIT_SCALE, 8 * EDIT_SCALE);
+                g.FillRectangle(new SolidBrush(Color.Black), 0, 0, 8, 8);
 
             }
-            this.PicEditFont.Image = bmpEditFont;
-            this.PicEditFont.Invalidate();
+            DrawEditVIewImage();
         }
 
+
+
+        /// <summary>
+        /// エディット中のフォントデータを白で埋める
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        private void BtnFill_Click(object sender, EventArgs e)
+        {
+            if (fontRomData_head == -1) return;
+
+            for (int i = 0; i < 8; ++i)
+            {
+                editData[i] = 0xff;
+            }
+
+            using (Graphics g = Graphics.FromImage(bmpOrgEdit))
+            {
+                g.FillRectangle(
+                    new SolidBrush(Color.White), 0, 0, 8, 8);
+            }
+            DrawEditVIewImage();
+        }
     }
 }
